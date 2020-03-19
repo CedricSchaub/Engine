@@ -95,7 +95,8 @@ namespace Platform {
       FIXME: According to MSDN using MultiByteToWideChar can cause security issues (buffer overrun)
       Better option to convert const char* to const wchar_t* ?
     */
-    int result = MultiByteToWideChar(CP_ACP, 0, title, -1, buffer, bufferSize); 
+    int result = MultiByteToWideChar(CP_ACP, 0, title, -1, buffer, bufferSize);
+    
     
     HWND hwnd = CreateWindowEx(0, L"ENGINE", buffer, WS_OVERLAPPEDWINDOW, x, y, width, height, NULL, NULL, gHinstance, NULL);
     assert(hwnd != NULL);
