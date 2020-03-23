@@ -1,5 +1,8 @@
-#pragma once
+#ifndef PLATFORM_TYPES_H
+#define PLATFORM_TYPES_H
+
 #include <cstdint>
+#include <map>
 
 // NOTE: Platform specific data. Declare before platform types because they need to define the struct
 struct NativeWindowData;
@@ -7,6 +10,7 @@ struct NativeWindowData;
 #if defined(ENGINE_WINDOWS)
 // NOTE: Include WindowsPlatform.h, WindowsTypes.h
 #include "windowsTypes.h"
+#include "windowsKeyTable.h"
 
 #elif defined(ENGINE_LINUX)
 
@@ -14,7 +18,7 @@ struct NativeWindowData;
 
 #endif
 
-namespace Platform {  
+namespace Platform {
 
   struct InputState {
     uint64_t lastKeyPress;
@@ -40,4 +44,11 @@ namespace Platform {
     InputState left;
     InputState right;
   };
+
+  struct KeyboardInput {
+    InputState keys[KEY_COUNT];
+  };
+  
 }
+
+#endif

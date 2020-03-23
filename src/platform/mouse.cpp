@@ -4,8 +4,8 @@
 static Platform::MouseInput mouseInput;
 
 namespace Platform {
-  MouseInput *const PGetMouse() {
-    return &mouseInput;
+  MouseInput& PGetMouse() {
+    return mouseInput;
   }
 }
 

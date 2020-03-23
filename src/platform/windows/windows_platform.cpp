@@ -6,7 +6,7 @@
 #include <cstring>
 #include "platformApi.h"
 
-
+using Platform::windows_key_table;
 
 static HINSTANCE gHinstance = {};
 
@@ -16,59 +16,87 @@ static HINSTANCE gHinstance = {};
 /*
   NOTE: Is forward declared in PlatformTypes.h and has to be implementet per Platform.
 */
-
-
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	return DefWindowProc(hwnd, uMsg, wParam, lParam);;
+
+  auto& mouse = Platform::PGetMouse();
+  auto& keyboard = Platform::PGetKeyboard();
+  
+  LRESULT result = 0;
+  switch(uMsg) {
+
+    /*
+      FIXME: Button UP / DOWN entprellen
+     */
+
+  case WM_CREATE: {
+    SetProcessDPIAware();
+  }  break;
+  case WM_NCCALCSIZE: {
+    int x = 0;
+    x = 5;
+    RECT re;
+    auto r = GetClientRect(hwnd, &re);
+    int xxx = 0;
+  } break;
+    
+  case WM_MOUSEMOVE: {
+    int32_t x = GET_X_LPARAM(lParam);
+    int32_t y = GET_X_LPARAM(lParam);
+
+    mouse.xPos = x;
+    mouse.yPos = y;
+    return 0;
+  } break;
+    
+  case WM_LBUTTONUP: {
+    mouse.left.isDown = false;
+    return 0;
+  } break;
+
+  case WM_LBUTTONDOWN: {
+    mouse.left.isDown = true;
+    return 0;
+  } break;
+
+  case WM_RBUTTONUP: {
+    mouse.right.isDown = false;
+    return 0;
+  } break;
+
+  case WM_RBUTTONDOWN: {
+    mouse.right.isDown = true;
+    return 0;
+  } break;
+
+  case WM_KEYDOWN: {
+    uint8_t previousKeyState = (lParam & (1 << 30));
+    Platform::ENGINE_KEYS key = windows_key_table[wParam];
+    
+    if( !previousKeyState ) {
+      keyboard.keys[key].isDown = true;
+    }
+    return 0;
+    
+  } break;
+
+  case WM_KEYUP: {
+    uint8_t key = windows_key_table[wParam];
+    keyboard.keys[key].isDown = false;
+    return 0;
+  } break;
+    
+  }
+
+  return  DefWindowProc(hwnd, uMsg, wParam, lParam);
+
 };
 
 static bool _registerWindowClass(HINSTANCE hInstance) {
 	WNDCLASS wc = {};
 	wc.lpfnWndProc = WindowProc;
 	wc.hInstance = hInstance;
-	wc.lpszClassName = L"ENGINE";
+	wc.lpszClassName = L"ENGINE1";
 	return RegisterClass(&wc);
-};
-
-static void _processWindowEvents(MSG* msg) {
-
-  auto mouse = Platform::PGetMouse();
-  
-  switch(msg->message) {
-
-    /*
-      FIXME: Button UP / DOWN entprellen
-     */
-  case WM_MOUSEMOVE: {
-    int32_t x = GET_X_LPARAM(msg->lParam);
-    int32_t y = GET_X_LPARAM(msg->lParam);
-
-    mouse->xPos = x;
-    mouse->yPos = y;
-    
-  } break;
-
-  case WM_LBUTTONUP: {
-    mouse->left.isDown = false;
-  } break;
-
-  case WM_LBUTTONDOWN: {
-    mouse->left.isDown = true;    
-  } break;
-
-  case WM_RBUTTONUP: {
-    mouse->right.isDown = false;
-  } break;
-
-  case WM_RBUTTONDOWN: {
-    mouse->right.isDown = true;    
-  } break;
-
-  default: {
-    return;
-  } break;
-    
-  }
 };
 
 /*
@@ -98,7 +126,7 @@ namespace Platform {
     int result = MultiByteToWideChar(CP_ACP, 0, title, -1, buffer, bufferSize);
     
     
-    HWND hwnd = CreateWindowEx(0, L"ENGINE", buffer, WS_OVERLAPPEDWINDOW, x, y, width, height, NULL, NULL, gHinstance, NULL);
+    HWND hwnd = CreateWindowEx(0, L"ENGINE1", buffer, WS_OVERLAPPEDWINDOW, x, y, width, height, NULL, NULL, gHinstance, NULL);
     assert(hwnd != NULL);
 	
     wnd->nativeWindowData->windowHandle = hwnd;
@@ -113,9 +141,15 @@ namespace Platform {
 
     MSG msg;
     HWND hwnd = wnd->nativeWindowData->windowHandle;
-    
+
+    /*
+      NOTE:
+      PeekMessage() only returns messages that were placed in the thread's
+      message queue with PostMessage(). However, if a thread is waiting in a
+      call to SendMessage(), that message will be handled by a direct call to
+      the window procedure before PeekMessage() returns.
+     */
     while(PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE)) {
-      _processWindowEvents(&msg);
         TranslateMessage(&msg);
 	DispatchMessage(&msg);
     }
@@ -168,6 +202,8 @@ namespace Platform {
 	*/
 	wndPlacement->length = sizeof(WINDOWPLACEMENT);
 	SetWindowPlacement(windowHandle, wndPlacement);
+	SetWindowPos(windowHandle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+		     SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 	window->isFullscreen = false;
     }
 
@@ -193,6 +229,7 @@ namespace Platform {
   }
 
   void LogDebugInfo(const ENGINE_STRING* msg) {
+    
     OutputDebugString(msg);
   }
 }
