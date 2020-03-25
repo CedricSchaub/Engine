@@ -2,6 +2,6 @@
 build/
 build.bat
 # Visual Studio stuff
-.vs
-x64/
-x86/
+#.vs/*
+#x64/*
+#x86/*
