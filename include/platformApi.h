@@ -1,17 +1,17 @@
-#pragma once
+#ifndef PLATFORM_API_H
+#define PLATFORM_API_H
 #include "platformTypes.h"
 
 void StartEngine();
 void ShutdownEngin();
 
-
 namespace Platform {
   // Window stuff
- extern Window* PCreateWindow(const char*, int32_t, int32_t, int32_t, int32_t);
- extern bool PPollWindowEvents(Window*);
- extern bool PSetFullscreen(Window*, bool);
- extern bool PShowWindow(Window*);
- extern bool PDestroyWindow(Window*);
+ extern bool PCreateWindow(PlatformWindow&, const char*, int32_t, int32_t, int32_t, int32_t);
+ extern bool PPollWindowEvents(PlatformWindow&);
+ extern bool PSetFullscreen(PlatformWindow&, bool);
+ extern bool PShowWindow(PlatformWindow&);
+ extern bool PDestroyWindow(PlatformWindow&);
 
   // Input
  extern MouseInput& PGetMouse();
@@ -22,7 +22,8 @@ namespace Platform {
  extern int64_t queryFrequency();
 
  // Debugging stuff
-  extern void LogDebugInfo(const ENGINE_STRING*);
+  extern void LogDebugInfo(const char*);
+  extern void LogDebugInfo(const char*, double);
 };
 
-
+#endif

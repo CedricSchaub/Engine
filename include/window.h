@@ -2,12 +2,10 @@
 #include "platformApi.h"
 
 class Window {
-  
-  Platform::Window* mWindow;
-  
+    Platform::PlatformWindow mPlatformWindow;
+
 public:
-  
-  Window() = default;
+    Window() : mPlatformWindow{} {}
   ~Window();
 
   // NOTE: Should the window be allowed to copy ??
@@ -20,5 +18,6 @@ public:
   bool showWindow();
   bool pollEvents();
   bool setFullscreen(bool);
-  
+
+  bool isActivated() const { return mPlatformWindow.isActivated; };
 };

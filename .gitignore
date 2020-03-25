@@ -1,3 +1,7 @@
 # Build stuff
 build/
 build.bat
+# Visual Studio stuff
+.vs
+x64/
+x86/

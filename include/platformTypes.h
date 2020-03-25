@@ -2,10 +2,15 @@
 #define PLATFORM_TYPES_H
 
 #include <cstdint>
-#include <map>
+#include <assert.h>
+#include <stdio.h>
 
 // NOTE: Platform specific data. Declare before platform types because they need to define the struct
-struct NativeWindowData;
+namespace Platform {
+    struct NativeWindowData;
+}
+
+
 
 #if defined(ENGINE_WINDOWS)
 // NOTE: Include WindowsPlatform.h, WindowsTypes.h
@@ -20,22 +25,21 @@ struct NativeWindowData;
 
 namespace Platform {
 
+    struct PlatformWindow {
+        int32_t width;
+        int32_t height;
+        int32_t xPos;
+        int32_t yPos;
+        bool isFullscreen;
+        bool isActivated;
+        const char* windowTitle;
+        NativeWindowData* mWindowData;
+    };
+
   struct InputState {
     uint64_t lastKeyPress;
     uint8_t count;
     bool isDown;
-  };
-  
-  struct Window {
-
-    int32_t width;
-    int32_t height;
-    int32_t xPos;
-    int32_t yPos;
-    bool isFullscreen;
-    const char* windowTitle;
-
-    NativeWindowData* nativeWindowData;
   };
   
   struct MouseInput {
