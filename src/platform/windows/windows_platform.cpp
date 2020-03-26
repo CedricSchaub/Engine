@@ -20,6 +20,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
   auto& mouse = Platform::PGetMouse();
   auto& keyboard = Platform::PGetKeyboard();
+
   Platform::PlatformWindow* window = (Platform::PlatformWindow*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
   LRESULT result = 0;
@@ -30,15 +31,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
          */
 
       case WM_ACTIVATE: {
-          if (window) {
               if (wParam != WA_INACTIVE) {
                   window->isActivated = true;
+                  Platform::LogDebugInfo("Window active\n");
               }
               else {
                   window->isActivated = false;
+                  Platform::LogDebugInfo("Window not active\n");
               }
-          }
+      } break;
 
+      case WM_SETFOCUS: {
+          Platform::LogDebugInfo("Got focus\n");
+      } break;
+
+      case WM_KILLFOCUS: {
+          Platform::LogDebugInfo("Lost focus\n");
       } break;
  
       case WM_MOUSEMOVE: {
@@ -48,6 +56,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
         mouse.xPos = x;
         mouse.yPos = y;
+
       } break;
     
       case WM_LBUTTONUP: {
@@ -91,13 +100,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
       } break;
 
+      case WM_DESTROY: {
+          PostQuitMessage(0);
+      } break;
+
       default: {
           result = DefWindowProc(hwnd, uMsg, wParam, lParam);
       } break;
     
   }
 
-  return DefWindowProc(hwnd, uMsg, wParam, lParam);;
+  return result;
 };
 
 static bool _registerWindowClass(HINSTANCE hInstance) {
@@ -107,26 +120,6 @@ static bool _registerWindowClass(HINSTANCE hInstance) {
 	wc.lpszClassName = ClassName;
 	return RegisterClass(&wc);
 };
-
-bool _handleWindowMessage(MSG& msg, Platform::PlatformWindow& window) {
-    HWND hwnd = msg.hwnd;
-    UINT uMsg = msg.message;
-    WPARAM wParam = msg.wParam;
-    LPARAM lParam = msg.lParam;
-
-    bool result = false;
-
-    switch (uMsg) {
-
-        case WM_ACTIVATE: {
-            // New size
-            int x = 0;
-        } break;
-
-    }
-
-    return result;
-}
 
 /*
 	Platform stuff
@@ -153,7 +146,9 @@ namespace Platform {
 
         window.mWindowData->windowHandle = hwnd;
         window.mWindowData->hinstance = gHinstance;
+
         // TODO: Should you do this ? Should I maybe save this in a linked list to allow more then one window context to be saved?
+        // 
         SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)&window);
     
         return true;
@@ -174,10 +169,8 @@ namespace Platform {
       the window procedure before PeekMessage() returns.
      */
     while(PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE)) {
-        if (!_handleWindowMessage(msg, window)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
-        }
     }
     
     return false;

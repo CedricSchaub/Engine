@@ -24,13 +24,6 @@ void StartEngine()
         start = Platform::queryTime();
         wnd.pollEvents();
     
-		if (wnd.isActivated()) {
-			Platform::LogDebugInfo("Activated\n");
-		}
-		else {
-			Platform::LogDebugInfo("Deactivated\n");
-		}
-    
         end = (Platform::queryTime() - start);
         timer += end * (1.0 / clockFrequency);
         //Platform::LogDebugInfo("Timer", timer);

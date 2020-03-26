@@ -10,8 +10,6 @@ namespace Platform {
     struct NativeWindowData;
 }
 
-
-
 #if defined(ENGINE_WINDOWS)
 // NOTE: Include WindowsPlatform.h, WindowsTypes.h
 #include "windowsTypes.h"
