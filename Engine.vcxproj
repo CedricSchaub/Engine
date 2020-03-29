@@ -99,25 +99,33 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ENGINE_WINDOWS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include\platform;$(SolutionDir)\include\opengl;$(SolutionDir)\include\windows;$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ENGINE_WINDOWS;UNICODE</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\platform\keyboard.cpp" />
     <ClCompile Include="src\platform\mouse.cpp" />
     <ClCompile Include="src\platform\platformApi.cpp" />
     <ClCompile Include="src\platform\window.cpp" />
+    <ClCompile Include="src\platform\windows\windows_opengl.cpp" />
     <ClCompile Include="src\platform\windows\windows_platform.cpp" />
     <ClCompile Include="src\platform\windows\windows_time.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\platformApi.h" />
-    <ClInclude Include="include\platformKeyTable.h" />
-    <ClInclude Include="include\platformTypes.h" />
-    <ClInclude Include="include\window.h" />
-    <ClInclude Include="include\windowsKeyTable.h" />
-    <ClInclude Include="include\windowsTypes.h" />
+    <ClInclude Include="include\khr\khrplatform.h" />
+    <ClInclude Include="include\opengl\glext.h" />
+    <ClInclude Include="include\opengl\wglext.h" />
+    <ClInclude Include="include\platform\platformApi.h" />
+    <ClInclude Include="include\platform\platformKeyTable.h" />
+    <ClInclude Include="include\platform\platformTypes.h" />
+    <ClInclude Include="include\platform\window.h" />
+    <ClInclude Include="include\windows\windowsKeyTable.h" />
+    <ClInclude Include="include\windows\windowsTypes.h" />
+    <ClInclude Include="internal.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

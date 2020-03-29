@@ -4,24 +4,11 @@
 #include <cstdint>
 #include <assert.h>
 #include <stdio.h>
+#include "platformKeyTable.h"
 
 // NOTE: Platform specific data. Declare before platform types because they need to define the struct
 namespace Platform {
     struct NativeWindowData;
-}
-
-#if defined(ENGINE_WINDOWS)
-// NOTE: Include WindowsPlatform.h, WindowsTypes.h
-#include "windowsTypes.h"
-#include "windowsKeyTable.h"
-
-#elif defined(ENGINE_LINUX)
-
-// NOTE: Include LinuxPlatform.h, LinuxTypes.h
-
-#endif
-
-namespace Platform {
 
     struct PlatformWindow {
         int32_t width;
@@ -30,6 +17,7 @@ namespace Platform {
         int32_t yPos;
         bool isFullscreen;
         bool isActivated;
+        bool closeRequested;
         const char* windowTitle;
         NativeWindowData* mWindowData;
     };
@@ -48,7 +36,8 @@ namespace Platform {
   };
 
   struct KeyboardInput {
-    InputState keys[KEY_COUNT];
+     // TODO: Remove magic number
+    InputState keys[Platform::ENGINE_KEYS::KEY_COUNT];
   };
   
 }

@@ -1,14 +1,19 @@
-#ifndef UNICODE
-#define UNICODE
-#endif
- 
 #include <cstring>
+#include "internal.h"
 #include "platformApi.h"
+
 
 using Platform::windows_key_table;
 
 static HINSTANCE gHinstance = {};
+
 static const wchar_t ClassName[] = L"ENGINE";
+static const wchar_t OpenGLClassName[] = L"OENGINE";
+
+struct OpenGLVersion {
+    int major;
+    int minor;
+};
 
 /*
 	Internal stuff
@@ -101,7 +106,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
       } break;
 
       case WM_DESTROY: {
-          PostQuitMessage(0);
+           PostQuitMessage(0);
+           window->closeRequested = true;
       } break;
 
       default: {
@@ -113,14 +119,57 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
   return result;
 };
 
-static bool _registerWindowClass(HINSTANCE hInstance) {
+static bool _registerWindowClass(HINSTANCE hInstance, bool opengl) {
 	WNDCLASS wc = {};
-	wc.lpfnWndProc = WindowProc;
+	wc.lpfnWndProc = (opengl) ? DefWindowProc : WindowProc;
 	wc.hInstance = hInstance;
-	wc.lpszClassName = ClassName;
+	wc.lpszClassName = (opengl) ? OpenGLClassName : ClassName;
+    wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	return RegisterClass(&wc);
 };
 
+static bool _unregisterWindowClass(HINSTANCE hInstance, bool opengl) {
+    
+    bool result = false;
+
+    if (opengl) {
+        result = UnregisterClass(OpenGLClassName, hInstance);
+    }
+    else {
+
+       result = UnregisterClass(ClassName, hInstance);
+    }
+
+    if (!result) {
+        auto error = GetLastError();
+        int x = 0;
+    }
+
+    return result;
+};
+
+static OpenGLVersion _getOpenGLVersion() {
+    int major, minor;
+    major = minor = 0;
+
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+    return { major, minor };
+};
+
+static void* _getOpenGLFunctionAddress(const char* functionName) {
+    /*
+        khronos.org
+        While the MSDN documentation says that wglGetProcAddress returns NULL on failure, some implementations will return other values. 1, 2, and 3 are used, as well as -1.
+    */
+    void* address = wglGetProcAddress(functionName);
+    if (address == NULL || address == (void*)0x1 || address == (void*)0x2 || address == (void*)0x3 || address == (void*)-1) {
+        assert(false);
+    }
+
+    return address;
+}
 /*
 	Platform stuff
 */
@@ -150,6 +199,7 @@ namespace Platform {
         // TODO: Should you do this ? Should I maybe save this in a linked list to allow more then one window context to be saved?
         // 
         SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)&window);
+        PCreateOpenGLContext(window, 3, 3);
     
         return true;
     }
@@ -233,28 +283,130 @@ namespace Platform {
 
   bool PDestroyWindow(Platform::PlatformWindow& window) {
 
-    bool result = UnregisterClass(ClassName, window.mWindowData->hinstance);
-    assert(result != false);
+      bool result = DestroyWindow(window.mWindowData->windowHandle);
+      assert(result != false);
 
-    return result;
-  }  
-  
-  void LogDebugInfo(const char* msg) {
-      OutputDebugStringA(msg);
+      return result;
   }
+
+   bool PCreateOpenGLContext(PlatformWindow& window, int major, int minor) {
+       _registerWindowClass(window.mWindowData->hinstance, true);
+
+       HWND fakeWindow = CreateWindow(OpenGLClassName, L"FakeWindow", WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0, 0, 1, 1, NULL, NULL, window.mWindowData->hinstance, NULL);
+       
+       HDC fakeDC = GetDC(fakeWindow);
+
+       PIXELFORMATDESCRIPTOR pixelDescriptor{
+           sizeof(PIXELFORMATDESCRIPTOR), // Size
+           1, // Version
+           PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+           PFD_TYPE_RGBA, // RGBA Colors
+           32, // Colordepth R=8 Bit, G=8 Bit, B=8 Bit, Alpha=8 Bit => 4 * 8 Bit = 32 Bit
+           0, 0, 0, 0, 0, 0,
+           0,
+           0,
+           0,
+           0, 0, 0, 0,
+           24,// BitsDepthbuffer
+           8, // Bits Stencilbuffer
+           0, // Number of Aux Buffers ???
+           PFD_MAIN_PLANE,
+           0,
+           0, 0, 0
+       };
+
+       int fakeID = ChoosePixelFormat(fakeDC, &pixelDescriptor);
+       assert(fakeID != 1);
+
+       bool pixelFormatSet = SetPixelFormat(fakeDC, fakeID, &pixelDescriptor);
+       assert(pixelFormatSet == true);
+
+       // Create temporary rendering context and make current
+
+       HGLRC fakeRC = wglCreateContext(fakeDC);
+       assert(fakeRC != 0);
+
+       bool renderingContextCurrent = wglMakeCurrent(fakeDC, fakeRC);
+       assert(renderingContextCurrent == true);
+
+       PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)_getOpenGLFunctionAddress("wglChoosePixelFormatARB");
+       PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)_getOpenGLFunctionAddress("wglCreateContextAttribsARB");
+
+       // CREATE ACTUAL RENDERING CONTEXT
+       // https://mariuszbartosik.com/opengl-4-x-initialization-in-windows-without-a-framework/
+
+       const int attribList[] =
+       {
+           WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+           WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+           WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+           WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+           WGL_COLOR_BITS_ARB, 32,
+           WGL_DEPTH_BITS_ARB, 24,
+           WGL_STENCIL_BITS_ARB, 8,
+           0, // End
+       };
+
+       int pixelFormat;
+       UINT numFormats;
+
+       HDC realDC = GetDC(window.mWindowData->windowHandle);
+       bool result = wglChoosePixelFormatARB(realDC, attribList, NULL, 1, &pixelFormat, &numFormats);
+
+       PIXELFORMATDESCRIPTOR PFD;
+       DescribePixelFormat(realDC, pixelFormat, sizeof(PFD), &PFD);
+       result = SetPixelFormat(realDC, pixelFormat, &PFD);
+
+       int  contextAttribs[] = {
+           WGL_CONTEXT_MAJOR_VERSION_ARB, major,
+           WGL_CONTEXT_MINOR_VERSION_ARB, minor,
+           WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+           0
+       };
+
+       HGLRC rc = wglCreateContextAttribsARB(realDC, 0, contextAttribs);
+
+       wglMakeCurrent(NULL, NULL);
+       wglDeleteContext(fakeRC);
+       DestroyWindow(fakeWindow);
+      
+       result = wglMakeCurrent(realDC, rc);
+
+       window.mWindowData->glRenderContext = rc;
+
+       auto version = _getOpenGLVersion();
+       
+       _unregisterWindowClass(window.mWindowData->hinstance, true);
+
+       return true;
+   };
+  
+   void LogDebugInfo(const char* msg) {
+       OutputDebugStringA(msg);
+   };
 
   void LogDebugInfo(const char* msg, double value) {
       char buffer[1024];
       sprintf(buffer, "Timer: %lf\n", value);
       OutputDebugStringA(buffer);
-  }
+  };
+
+  void PClearScreen() {
+      glClearColor(0.129f, 0.586f, 0.949f, 1.0f);
+  };
+  
+  void PSwapBuffers(PlatformWindow& window) {
+      HDC dc = GetDC(window.mWindowData->windowHandle);
+      SwapBuffers(dc);
+  };
 }
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR pCmdLine, _In_ int nCmdShow) {
-	assert(_registerWindowClass(hInstance));
+	assert(_registerWindowClass(hInstance, false));
     gHinstance = hInstance;
 
 	StartEngine();
+    assert(_unregisterWindowClass(hInstance, false));
 
 	return 0;
 }

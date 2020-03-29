@@ -17,6 +17,14 @@ bool Window::setFullscreen(bool fullscreen) {
   return Platform::PSetFullscreen(mPlatformWindow, fullscreen);
 };
 
+void Window::swapBuffers() {
+    Platform::PSwapBuffers(mPlatformWindow);
+}
+
+void Window::clearScreen() {
+    Platform::PClearScreen();
+}
+
 Window::~Window() {
     Platform::PDestroyWindow(mPlatformWindow);
     if (mPlatformWindow.mWindowData)

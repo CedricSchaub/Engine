@@ -22,8 +22,14 @@
     <Filter Include="Source Files\platform">
       <UniqueIdentifier>{c9ffd6e4-c3f9-4ce9-8ceb-94a54513e49e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\windows">
+    <Filter Include="Source Files\platform\windows">
       <UniqueIdentifier>{1f5d7e35-ac96-4afa-8bfa-1359fd1009e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\opengl">
+      <UniqueIdentifier>{0adae309-a1a2-46fe-9143-a01cfccc83b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\khr">
+      <UniqueIdentifier>{5e6067d1-5c77-438c-97a3-d59ab82fad59}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,34 +42,49 @@
     <ClCompile Include="src\platform\platformApi.cpp">
       <Filter>Source Files\platform</Filter>
     </ClCompile>
-    <ClCompile Include="src\platform\window.cpp">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
     <ClCompile Include="src\platform\windows\windows_platform.cpp">
-      <Filter>Source Files\windows</Filter>
+      <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
     <ClCompile Include="src\platform\windows\windows_time.cpp">
-      <Filter>Source Files\windows</Filter>
+      <Filter>Source Files\platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\window.cpp">
+      <Filter>Source Files\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\platform\windows\windows_opengl.cpp">
+      <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\platformApi.h">
+    <ClInclude Include="include\opengl\glext.h">
+      <Filter>Header Files\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\opengl\wglext.h">
+      <Filter>Header Files\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\platform\window.h">
       <Filter>Header Files\platform</Filter>
     </ClInclude>
-    <ClInclude Include="include\platformKeyTable.h">
+    <ClInclude Include="include\platform\platformTypes.h">
       <Filter>Header Files\platform</Filter>
     </ClInclude>
-    <ClInclude Include="include\platformTypes.h">
+    <ClInclude Include="include\platform\platformKeyTable.h">
       <Filter>Header Files\platform</Filter>
     </ClInclude>
-    <ClInclude Include="include\windowsKeyTable.h">
+    <ClInclude Include="include\platform\platformApi.h">
+      <Filter>Header Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="include\windows\windowsKeyTable.h">
       <Filter>Header Files\windows</Filter>
     </ClInclude>
-    <ClInclude Include="include\windowsTypes.h">
+    <ClInclude Include="include\windows\windowsTypes.h">
       <Filter>Header Files\windows</Filter>
     </ClInclude>
-    <ClInclude Include="include\window.h">
-      <Filter>Header Files\platform</Filter>
+    <ClInclude Include="internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\khr\khrplatform.h">
+      <Filter>Header Files\khr</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

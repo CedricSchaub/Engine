@@ -1,4 +1,5 @@
-#include "platformApi.h"
+#include "internal.h"
+#include "platformTypes.h"
 
 namespace Platform {
 

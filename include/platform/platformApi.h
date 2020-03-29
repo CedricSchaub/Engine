@@ -1,5 +1,6 @@
 #ifndef PLATFORM_API_H
 #define PLATFORM_API_H
+
 #include "platformTypes.h"
 
 void StartEngine();
@@ -12,6 +13,11 @@ namespace Platform {
  extern bool PSetFullscreen(PlatformWindow&, bool);
  extern bool PShowWindow(PlatformWindow&);
  extern bool PDestroyWindow(PlatformWindow&);
+
+ // Open GL stuff
+ extern bool PCreateOpenGLContext(PlatformWindow&, int, int);
+ extern void PClearScreen();
+ extern void PSwapBuffers(PlatformWindow&);
 
   // Input
  extern MouseInput& PGetMouse();
