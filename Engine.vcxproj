@@ -116,6 +116,7 @@
     <ClCompile Include="src\platform\windows\windows_time.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\internal.h" />
     <ClInclude Include="include\khr\khrplatform.h" />
     <ClInclude Include="include\opengl\glext.h" />
     <ClInclude Include="include\opengl\wglext.h" />
@@ -125,7 +126,6 @@
     <ClInclude Include="include\platform\window.h" />
     <ClInclude Include="include\windows\windowsKeyTable.h" />
     <ClInclude Include="include\windows\windowsTypes.h" />
-    <ClInclude Include="internal.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

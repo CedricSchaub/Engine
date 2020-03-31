@@ -80,11 +80,11 @@
     <ClInclude Include="include\windows\windowsTypes.h">
       <Filter>Header Files\windows</Filter>
     </ClInclude>
-    <ClInclude Include="internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\khr\khrplatform.h">
       <Filter>Header Files\khr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\internal.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

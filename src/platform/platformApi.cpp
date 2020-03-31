@@ -24,14 +24,15 @@ void StartEngine()
     double timer = 0.0;
     
 
-    auto& mouse = Platform::PGetMouse();
+    auto& mouse = Platform::PGetMouse();*/
     auto& keyboard = Platform::PGetKeyboard();
-    bool fire = true;*/
+   
 
     while(!wnd.isCloseRequested()) {
     
         //start = Platform::queryTime();
         wnd.pollEvents();
+
 
 
         wnd.clearScreen();

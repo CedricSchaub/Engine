@@ -10,6 +10,8 @@ static HINSTANCE gHinstance = {};
 static const wchar_t ClassName[] = L"ENGINE";
 static const wchar_t OpenGLClassName[] = L"OENGINE";
 
+static int keyCounter = 0;
+
 struct OpenGLVersion {
     int major;
     int minor;
@@ -89,13 +91,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
       case WM_KEYDOWN: {
 
-        uint8_t previousKeyState = (lParam & (1 << 30));
+        /*
+            lParam 
+            bit 0 - 15 = repeat counter
+            bit 30 = prev. key state was it down or up ?
+        */
+        bool previousKeyState = (lParam & (1 << 30));
+
         Platform::ENGINE_KEYS key = windows_key_table[wParam];
     
         if( !previousKeyState ) {
           keyboard.keys[key].isDown = true;
+          Platform::LogDebugInfo("Key was pressed\n");
         }
-    
+
       } break;
 
       case WM_KEYUP: {
@@ -148,16 +157,6 @@ static bool _unregisterWindowClass(HINSTANCE hInstance, bool opengl) {
     return result;
 };
 
-static OpenGLVersion _getOpenGLVersion() {
-    int major, minor;
-    major = minor = 0;
-
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-    return { major, minor };
-};
-
 static void* _getOpenGLFunctionAddress(const char* functionName) {
     /*
         khronos.org
@@ -170,6 +169,35 @@ static void* _getOpenGLFunctionAddress(const char* functionName) {
 
     return address;
 }
+
+static OpenGLVersion _getOpenGLVersion() {
+    int major, minor;
+    major = minor = 0;
+
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+    return { major, minor };
+};
+
+static void _getOpenGLExtensions(Platform::PlatformWindow& window) {
+    assert(wglGetCurrentContext() != NULL);
+
+    GLint numberOfExtensions;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &numberOfExtensions);
+
+    PFNGLGETSTRINGIPROC glGetStringi = (PFNGLGETSTRINGIPROC)_getOpenGLFunctionAddress("glGetStringi");
+    assert(glGetStringi != NULL);
+
+    // TODO: Init. OpenGL Functions in a seperate file?
+
+    for (GLint index = 0; index < numberOfExtensions; index++) {
+
+        const char* extensionName = (const char*)glGetStringi(GL_EXTENSIONS, index);
+        window.mOpenGLExtensions.push_back(extensionName);
+    }
+}
+
 /*
 	Platform stuff
 */
@@ -200,6 +228,8 @@ namespace Platform {
         // 
         SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)&window);
         PCreateOpenGLContext(window, 3, 3);
+
+        _getOpenGLExtensions(window);
     
         return true;
     }
@@ -268,8 +298,8 @@ namespace Platform {
 			*/
 			wndPlacement->length = sizeof(WINDOWPLACEMENT);
 			SetWindowPlacement(windowHandle, wndPlacement);
-			/*SetWindowPos(windowHandle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);*/
+			SetWindowPos(windowHandle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 			window.isFullscreen = false;
     }
 
@@ -282,9 +312,13 @@ namespace Platform {
   }
 
   bool PDestroyWindow(Platform::PlatformWindow& window) {
+      bool result = PDeleteOpenGLContext(window);
+      assert(result);
 
-      bool result = DestroyWindow(window.mWindowData->windowHandle);
-      assert(result != false);
+      result = DestroyWindow(window.mWindowData->windowHandle);
+    //  assert(result);
+
+      LogDebugInfo("Window destroyed");
 
       return result;
   }
@@ -381,13 +415,26 @@ namespace Platform {
        return true;
    };
   
+   bool PDeleteOpenGLContext(PlatformWindow& window) {
+           /*
+             MSDN: If a rendering context is the calling thread's current context, the wglDeleteContext function changes the rendering context to being not current before deleting it.
+           */
+
+           bool result = wglDeleteContext(window.mWindowData->glRenderContext);
+           //assert(result);
+
+           LogDebugInfo("OpenGL Context destroyed.");
+
+           return result;
+   }
+
    void LogDebugInfo(const char* msg) {
        OutputDebugStringA(msg);
    };
 
   void LogDebugInfo(const char* msg, double value) {
       char buffer[1024];
-      sprintf(buffer, "Timer: %lf\n", value);
+      sprintf(buffer, "%lf\n", value);
       OutputDebugStringA(buffer);
   };
 

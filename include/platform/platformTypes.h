@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "platformKeyTable.h"
+#include <vector>
 
 // NOTE: Platform specific data. Declare before platform types because they need to define the struct
 namespace Platform {
@@ -20,6 +21,7 @@ namespace Platform {
         bool closeRequested;
         const char* windowTitle;
         NativeWindowData* mWindowData;
+        std::vector<const char*> mOpenGLExtensions;
     };
 
   struct InputState {

@@ -16,6 +16,7 @@ namespace Platform {
 
  // Open GL stuff
  extern bool PCreateOpenGLContext(PlatformWindow&, int, int);
+ extern bool PDeleteOpenGLContext(PlatformWindow&);
  extern void PClearScreen();
  extern void PSwapBuffers(PlatformWindow&);
 
